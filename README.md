@@ -21,4 +21,11 @@ Then install TailwindCSS and DaisyUI:
 > npm i -D tailwindcss @tailwindcss/typography daisyui
 ```
 
+Ensure `templ` is on your `PATH` (needed for vscode and the `just local` target):
+
+```
+> which templ                                                         ✔ 
+~/go/bin/templ
+```
+
 Invoke `just tw` and `just local` in two terminals to run the local dev server and automatically regenerate targets for changes source files.

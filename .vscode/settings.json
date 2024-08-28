@@ -1,0 +1,12 @@
+{
+    "[templ]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "a-h.templ"
+    },
+    "tailwindCSS.includeLanguages": {
+        "templ": "html"
+    },
+    "emmet.includeLanguages": {
+        "templ": "html"
+    }
+}
