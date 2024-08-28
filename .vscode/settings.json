@@ -8,5 +8,13 @@
     },
     "emmet.includeLanguages": {
         "templ": "html"
-    }
+    },
+    "cSpell.customDictionaries": {
+        "project-words": {
+            "name": "project-words",
+            "path": "${workspaceRoot}/.cspell/project-words.txt",
+            "description": "Words used in this project",
+            "addWords": true
+        },
+    },
 }
