@@ -1,8 +1,12 @@
 
-tw:
-	@npx tailwindcss -i input.css -o static/css/tw.css --watch
+default:
+  just --list
 
-local:
-    #!/usr/bin/env bash
-    set -euxo pipefail
-    templ generate -watch -proxy="http://localhost:8080" -open-browser=false -cmd="go run main.go"
+tw:
+	@npx tailwindcss -i input.css -o static/css/tw.css
+
+templ:
+  templ generate
+
+air-main: tw templ
+  go build -o tmp/main .
