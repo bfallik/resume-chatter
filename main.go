@@ -22,11 +22,11 @@ func main() {
 		accordion := components.AccordionExample()
 		err := accordion.Render(r.Context(), w)
 		if err != nil {
-			log.Printf("err rendeting html template: %+v\n", err)
+			log.Printf("err rendering html template: %+v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("error rendering HTML template"))
 		}
 	})
 
-	http.ListenAndServe(":8080", r)
+	log.Fatalln(http.ListenAndServe(":8080", r))
 }
