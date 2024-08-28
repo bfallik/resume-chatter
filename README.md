@@ -6,7 +6,7 @@ a chat bot for resumes
 
 Based on docs from [goship.it](https://goship.it/get-started).
 
-Install [templ](https://templ.guide/) and [npm](https://docs.npmjs.com/about-npm) dependencies:
+Install [templ](https://templ.guide/), [npm](https://docs.npmjs.com/about-npm), and [just](https://just.systems/) dependencies:
 
 ```
 > go install github.com/a-h/templ/cmd/templ@latest
@@ -21,3 +21,4 @@ Then install TailwindCSS and DaisyUI:
 > npm i -D tailwindcss @tailwindcss/typography daisyui
 ```
 
+Invoke `just tw` and `just local` in two terminals to run the local dev server and automatically regenerate targets for changes source files.
