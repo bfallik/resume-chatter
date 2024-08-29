@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bfallik/resume-chatter/views/components"
+	"github.com/bfallik/resume-chatter/views/pages"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -19,7 +19,7 @@ func main() {
 	r.Handle("/static/*", http.FileServer(http.FS(staticFS)))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		accordion := components.TextareaExample()
+		accordion := pages.Index()
 		err := accordion.Render(r.Context(), w)
 		if err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
