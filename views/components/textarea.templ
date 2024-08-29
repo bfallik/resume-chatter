@@ -1,0 +1,51 @@
+package components
+
+import (
+	"fmt"
+	"github.com/bfallik/resume-chatter/internal/model"
+)
+
+templ Textarea(textarea model.Textarea) {
+	<label class="form-control">
+		<div class="label">
+			<span class="label-text">{ textarea.Label }</span>
+		</div>
+		<textarea
+			{ textarea.Attrs... }
+			name={ textarea.Name }
+			class={
+				"textarea textarea-bordered resize-none",
+				textarea.Class,
+			}
+			if textarea.Rows > 0 {
+				rows={ fmt.Sprintf("%d", textarea.Rows) }
+			} else {
+				rows="3"
+			}
+		>
+			{ textarea.Value }
+		</textarea>
+		<div class="label h-6 !p-0">
+			<span class="label-text-alt text-error">{ textarea.Err }</span>
+		</div>
+	</label>
+}
+
+templ TextareaExample() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" type="text/css" href="/static/css/tw.css"/>
+			<title>Document</title>
+		</head>
+		<body class="w-full h-full min-h-svh">
+			<main>
+				<div class="px-20">
+					@Textarea(model.Textarea{})
+				</div>
+			</main>
+		</body>
+	</html>
+}
