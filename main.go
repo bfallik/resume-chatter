@@ -28,5 +28,7 @@ func main() {
 		}
 	})
 
-	log.Fatalln(http.ListenAndServe(":8080", r))
+	const a = ":8080"
+	log.Println("listening on ", a)
+	log.Fatalln(http.ListenAndServe(a, r))
 }
