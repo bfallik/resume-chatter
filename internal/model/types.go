@@ -23,6 +23,13 @@ type Card struct {
 	Alt     string
 }
 
+type Chat struct {
+	IsStart bool
+	Header  string
+	Bubble  string
+	Footer  string
+}
+
 type Checkbox struct {
 	Label   string
 	Name    string

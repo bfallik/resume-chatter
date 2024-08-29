@@ -1,0 +1,23 @@
+package components
+
+import "github.com/bfallik/resume-chatter/internal/model"
+
+func getChatStartEnd(isStart bool) string {
+	if isStart {
+		return "chat chat-start"
+	}
+	return "chat chat-end"
+}
+
+templ Chat(chat []model.Chat) {
+	<div class="w-9/12">
+		for _, ch := range chat {
+			<div class={ getChatStartEnd(ch.IsStart) }>
+				<div class="chat-header">
+					{ ch.Header }
+				</div>
+				<div class="chat-bubble">{ ch.Bubble }</div>
+			</div>
+		}
+	</div>
+}

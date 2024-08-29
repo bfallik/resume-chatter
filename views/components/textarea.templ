@@ -34,10 +34,24 @@ templ Textarea(textarea model.Textarea) {
 templ TextareaExample() {
 	@HTMLRoot() {
 		<main>
-			<h1 class="text-2xl font-semibold text-center pt-10">Resume Chatbot</h1>
-			<p class="px-20 pt-10">Lorem ipsum odor amet, consectetuer adipiscing elit. Tristique eu quis justo ante ridiculus et suscipit malesuada. Ad posuere nec congue interdum hendrerit quam nunc donec. Erat finibus adipiscing fermentum vel platea. Faucibus sapien vitae varius ex tristique tempus mi nostra. Arcu scelerisque accumsan class luctus felis velit accumsan. Purus rutrum volutpat dolor, feugiat aliquet vehicula gravida cursus. Urna ornare tortor primis interdum urna himenaeos.</p>
 			<div class="px-20">
-				@Textarea(model.Textarea{})
+				<h1 class="text-2xl font-semibold text-center pt-10">Resume Chatbot</h1>
+				<p class="pt-10">Lorem ipsum odor amet, consectetuer adipiscing elit. Tristique eu quis justo ante ridiculus et suscipit malesuada. Ad posuere nec congue interdum hendrerit quam nunc donec. Erat finibus adipiscing fermentum vel platea. Faucibus sapien vitae varius ex tristique tempus mi nostra. Arcu scelerisque accumsan class luctus felis velit accumsan. Purus rutrum volutpat dolor, feugiat aliquet vehicula gravida cursus. Urna ornare tortor primis interdum urna himenaeos.</p>
+				<div class="w-9/12">
+					@Textarea(model.Textarea{})
+				</div>
+				@Chat([]model.Chat{
+					{
+						IsStart: true,
+						Header:  "Obi-Wan Kenobi",
+						Bubble:  "You were the Chosen One!",
+					},
+					{
+						IsStart: false,
+						Header:  "Anakin",
+						Bubble:  "I loved you.",
+					},
+				})
 			</div>
 		</main>
 	}
