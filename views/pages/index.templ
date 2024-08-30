@@ -11,7 +11,7 @@ templ Index(chat []model.Chat) {
 			<div class="px-20">
 				<h1 class="text-2xl font-semibold text-center pt-10">Resume Chatbot</h1>
 				<p class="pt-10">Lorem ipsum odor amet, consectetuer adipiscing elit. Tristique eu quis justo ante ridiculus et suscipit malesuada. Ad posuere nec congue interdum hendrerit quam nunc donec. Erat finibus adipiscing fermentum vel platea. Faucibus sapien vitae varius ex tristique tempus mi nostra. Arcu scelerisque accumsan class luctus felis velit accumsan. Purus rutrum volutpat dolor, feugiat aliquet vehicula gravida cursus. Urna ornare tortor primis interdum urna himenaeos.</p>
-				<form action="/ask" method="post">
+				<form hx-post="/ask" hx-target="#chat-history">
 					<div class="w-9/12">
 						@components.Textarea(model.Textarea{
 							Name: "content",
@@ -34,6 +34,7 @@ templ HTMLRoot() {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link rel="stylesheet" type="text/css" href="/static/css/tw.css"/>
+			<script src="https://unpkg.com/htmx.org"></script>
 			<title>Document</title>
 		</head>
 		<body class="w-full h-full min-h-svh">

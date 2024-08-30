@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/bfallik/resume-chatter/internal/model"
+	"github.com/bfallik/resume-chatter/views/components"
 	"github.com/bfallik/resume-chatter/views/pages"
 
 	"github.com/go-chi/chi/v5"
@@ -64,7 +65,13 @@ func main() {
 			Bubble:  content[0], // BF TODO: handle this
 		})
 
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		idx := components.Chat(chatHistory)
+		err := idx.Render(r.Context(), w)
+		if err != nil {
+			log.Printf("err rendering html template: %+v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("error rendering HTML template"))
+		}
 	})
 
 	const a = ":8080"
