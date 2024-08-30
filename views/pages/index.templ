@@ -3,9 +3,10 @@ package pages
 import (
 	"github.com/bfallik/resume-chatter/internal/model"
 	"github.com/bfallik/resume-chatter/views/components"
+	"time"
 )
 
-templ Index(chat []model.Chat) {
+templ Index(chat []model.Chat, start time.Time) {
 	@HTMLRoot() {
 		<main>
 			<div class="px-20">
@@ -24,6 +25,9 @@ templ Index(chat []model.Chat) {
 				@components.Chat(chat)
 			</div>
 		</main>
+		<footer class="p-20">
+			<p class="text-center">Server started { start.Format(time.RFC1123) }</p>
+		</footer>
 	}
 }
 

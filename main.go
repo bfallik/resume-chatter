@@ -4,6 +4,7 @@ import (
 	"embed"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/bfallik/resume-chatter/internal/model"
 	"github.com/bfallik/resume-chatter/views/components"
@@ -29,12 +30,15 @@ var chatHistory []model.Chat = []model.Chat{
 }
 
 func main() {
+	start := time.Now()
+	log.Printf("started %v", start.Format(time.RFC1123))
+
 	r := chi.NewRouter()
 
 	r.Handle("/static/*", http.FileServer(http.FS(staticFS)))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		idx := pages.Index(chatHistory)
+		idx := pages.Index(chatHistory, start)
 		err := idx.Render(r.Context(), w)
 		if err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
