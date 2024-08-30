@@ -12,7 +12,7 @@ templ Index(chat []model.Chat, start time.Time) {
 			<div class="px-20">
 				<h1 class="text-2xl font-semibold text-center pt-10">Resume Chatbot</h1>
 				<p class="pt-10">Lorem ipsum odor amet, consectetuer adipiscing elit. Tristique eu quis justo ante ridiculus et suscipit malesuada. Ad posuere nec congue interdum hendrerit quam nunc donec. Erat finibus adipiscing fermentum vel platea. Faucibus sapien vitae varius ex tristique tempus mi nostra. Arcu scelerisque accumsan class luctus felis velit accumsan. Purus rutrum volutpat dolor, feugiat aliquet vehicula gravida cursus. Urna ornare tortor primis interdum urna himenaeos.</p>
-				<form hx-post="/ask" hx-target="#chat-history">
+				<form hx-post="/ask" hx-target="#chat-history" hx-on::after-request="if(event.detail.successful) this.reset()">
 					<div class="w-9/12">
 						@components.Textarea(model.Textarea{
 							Name: "content",
