@@ -8,5 +8,5 @@ tw:
 templ:
   templ generate
 
-air-main: tw templ
+air-main: templ
   go build -o tmp/main .
