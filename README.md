@@ -118,3 +118,8 @@ Project Root:
   /home/bfallik/sandbox/resume-chatter/python
 Local Packages:
 ```
+
+
+OpenAI API Notes
+----------------
+langchain expects an OPENAI_API_KEY env variable. The `justfile` expects this to live in a `.env` at the root of the repo.

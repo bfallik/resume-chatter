@@ -10,3 +10,6 @@ templ:
 
 air-main: templ
   go build -o tmp/main .
+
+langchain:
+  ( set -o allexport ; source ./.env ; set +o allexport; python/.venv/bin/python python/src/resume_chatter/__init__.py )
