@@ -71,3 +71,50 @@ go build -o tmp/main .
 running...
 
 ```
+
+
+Python Setup Notes
+------------------
+
+This is an attempt to set up a modern Python dev environment based on https://www.stuartellis.name/articles/python-modern-practices/. Python is set up within the `python/` subdirectory using [pyenv](https://github.com/pyenv/pyenv) and [pdm](https://pdm-project.org/).
+
+
+```
+> curl https://pyenv.run | bash
+```
+then [setup shell environment](https://github.com/pyenv/pyenv?tab=readme-ov-file#set-up-your-shell-environment-for-pyenv).
+
+
+Fedora needed some dependencies in order to build Python (from https://stribny.name/blog/install-python-dev/ and https://stackoverflow.com/questions/5459444/tkinter-python-may-not-be-configured-for-tk):
+
+```
+> sudo dnf install zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel findutils -y
+...
+> sudo dnf install tk-devel -y
+...
+> pyenv install 3.12
+...
+> pyenv local
+...
+> pyenv version
+3.12.5 (set by /home/bfallik/sandbox/resume-chatter/.python-version)
+> python --version
+Python 3.12.5
+```
+
+Lastly install [pipx](https://github.com/pypa/pipx) and add to `$PATH` and then `pdm`:
+
+```
+> pip install pipx
+...
+> pipx install pdm
+...
+> pdm info
+PDM version:
+  2.18.1
+Python Interpreter:
+  /home/bfallik/sandbox/resume-chatter/python/.venv/bin/python (3.12)
+Project Root:
+  /home/bfallik/sandbox/resume-chatter/python
+Local Packages:
+```

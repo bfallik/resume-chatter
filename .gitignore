@@ -163,3 +163,7 @@ dist
 
 ### air
 tmp
+
+
+### Python pyenv
+.python-version
