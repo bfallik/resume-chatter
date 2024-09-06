@@ -1,0 +1,17 @@
+syntax = "proto3";
+package chat.v1;
+// option go_package = "./proto";
+
+message AskRequest {
+    string question = 1;
+}
+
+message AskResponse {
+    string response = 1;
+}
+
+message Empty {}
+
+service ChatService {
+    rpc Ask(AskRequest) returns (AskResponse);
+}

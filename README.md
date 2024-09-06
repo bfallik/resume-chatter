@@ -128,3 +128,25 @@ Lastly install [mypy](https://mypy-lang.org/):
 OpenAI API Notes
 ----------------
 langchain expects an OPENAI_API_KEY env variable. The `justfile` expects this to live in a `.env` at the root of the repo.
+
+
+go-plugin notes
+---------------
+Install [buf](https://github.com/bufbuild), as recommended in the [go-plugin example](https://github.com/hashicorp/go-plugin/blob/main/examples/grpc/proto/kv.proto):
+
+```
+> github.com/bufbuild/buf/cmd/buf@v1.40.0
+```
+
+The proto files lives in `protoc/` subdirectory. `buf` configuration lives in `buf.yml` and `buf.gen.yml`.
+
+Basic hello world testing:
+
+```
+> go run cmd/bufserver/main.go &
+...
+listening on localhost:8081
+> buf curl --schema . --data '{"question": "what is happening?"}' http://localhost:8081/chat.v1.ChatService/Ask
+2024/09/06 11:55:30 Got a request to answer what is happening?
+{}
+```
