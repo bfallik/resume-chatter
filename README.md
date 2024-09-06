@@ -102,7 +102,7 @@ Fedora needed some dependencies in order to build Python (from https://stribny.n
 Python 3.12.5
 ```
 
-Lastly install [pipx](https://github.com/pypa/pipx) and add to `$PATH` and then `pdm`:
+Install [pipx](https://github.com/pypa/pipx) and add to `$PATH` and then `pdm`:
 
 ```
 > pip install pipx
@@ -117,6 +117,11 @@ Python Interpreter:
 Project Root:
   /home/bfallik/sandbox/resume-chatter/python
 Local Packages:
+```
+
+Lastly install [mypy](https://mypy-lang.org/):
+```
+> pipx install mypy
 ```
 
 
