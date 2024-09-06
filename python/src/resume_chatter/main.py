@@ -5,21 +5,20 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables.base import Runnable
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 logger = logging.getLogger(__name__)
 
 
-if __name__ == "__main__":
+def chat(resume_path: str, question: str) -> Runnable:
     model = "gpt-4o-mini"
     logger.warning(f"using model: {model}")
 
     llm = ChatOpenAI(model=model)
 
-    loader = PyPDFLoader(
-        "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf"
-    )
+    loader = PyPDFLoader(resume_path)
     docs = loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter()
@@ -39,7 +38,12 @@ if __name__ == "__main__":
     retriever = vector.as_retriever()
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
-    res = retrieval_chain.invoke(
-        {"input": "What was Brian's second most recent job and when did he work there?"}
+    return retrieval_chain.invoke({"input": question})
+
+
+if __name__ == "__main__":
+    res = chat(
+        resume_path="/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf",
+        question="What was Brian's second most recent job and when did he work there?",
     )
     print(res)
