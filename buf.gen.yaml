@@ -8,8 +8,12 @@ plugins:
   - remote: buf.build/protocolbuffers/go
     out: protocgengo
     opt: paths=source_relative
-  - remote: buf.build/connectrpc/go
+  - remote: buf.build/grpc/go
     out: protocgengo
     opt: paths=source_relative
+  - remote: buf.build/protocolbuffers/python
+    out: python/src/protocgenpy
+  - remote: buf.build/grpc/python
+    out: python/src/protocgenpy
 inputs:
   - directory: protoc

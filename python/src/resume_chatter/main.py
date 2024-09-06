@@ -12,6 +12,27 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 logger = logging.getLogger(__name__)
 
 
+from concurrent import futures
+
+import grpc
+from protocgenpy.chat.v1 import chat_pb2, chat_pb2_grpc
+
+
+class ChatService(chat_pb2_grpc.ChatServiceServicer):
+    def Ask(self, request, context):
+        return chat_pb2.AskResponse(response="I don't know")
+
+
+def serve() -> None:
+    port = "8081"
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatService(), server)
+    server.add_insecure_port("[::]:" + port)
+    server.start()
+    print("Server started, listening on " + port)
+    server.wait_for_termination()
+
+
 def chat(resume_path: str, question: str) -> Runnable:
     model = "gpt-4o-mini"
     logger.warning(f"using model: {model}")
@@ -42,8 +63,11 @@ def chat(resume_path: str, question: str) -> Runnable:
 
 
 if __name__ == "__main__":
-    res = chat(
-        resume_path="/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf",
-        question="What was Brian's second most recent job and when did he work there?",
-    )
-    print(res)
+    serve()
+
+    if False:
+        res = chat(
+            resume_path="/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf",
+            question="What was Brian's second most recent job and when did he work there?",
+        )
+        print(res)
