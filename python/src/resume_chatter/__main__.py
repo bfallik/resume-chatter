@@ -1,0 +1,4 @@
+from resume_chatter.serve import serve
+
+if __name__ == "__main__":
+    serve()

@@ -65,7 +65,3 @@ def serve() -> None:
     server.start()
     print("Server started, listening on " + port)
     server.wait_for_termination()
-
-
-if __name__ == "__main__":
-    serve()

@@ -15,7 +15,7 @@ air-main: templ
 #   from chat.v1 import chat_pb2 as chat_dot_v1_dot_chat__pb2
 langchain:
   ( set -o allexport ; source ./.env ; set +o allexport; \
-    cd python/src; PYTHONPATH=$(pwd)/protocgenpy pdm run python -m resume_chatter.main )
+    cd python/src; PYTHONPATH=$(pwd)/protocgenpy pdm run python -m resume_chatter )
 
 mypy:
   ( cd python; pdm run mypy --strict --python-executable .venv/bin/python src/resume_chatter )
