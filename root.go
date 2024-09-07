@@ -1,4 +1,4 @@
-package main
+package root
 
 import (
 	"embed"
@@ -29,7 +29,7 @@ var chatHistory []model.Chat = []model.Chat{
 	},
 }
 
-func main() {
+func Serve(address string) error {
 	start := time.Now()
 	log.Printf("started %v", start.Format(time.RFC1123))
 
@@ -78,7 +78,6 @@ func main() {
 		}
 	})
 
-	const a = ":8080"
-	log.Println("listening on ", a)
-	log.Fatalln(http.ListenAndServe(a, r))
+	log.Println("listening on ", address)
+	return http.ListenAndServe(address, r)
 }

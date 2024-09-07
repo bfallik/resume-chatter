@@ -9,7 +9,7 @@ templ:
   templ generate
 
 air-main: templ
-  go build -o tmp/main .
+  go build -o tmp/main ./cmd/webserver
 
 # PYTHONPATH is necessary because the grpc buf back-end produces an import line like:
 #   from chat.v1 import chat_pb2 as chat_dot_v1_dot_chat__pb2
