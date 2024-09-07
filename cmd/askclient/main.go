@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	defaultQuestion = "What is the airspeed velocity of an unladen sparrow?"
+	defaultQuestion = "What was Brian's second most recent job and when did he work there?"
 )
 
 var (
 	addr     = flag.String("addr", "localhost:8081", "the address to connect to")
+	doc_path = flag.String("document_path", "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf", "Reference document to use")
 	question = flag.String("question", defaultQuestion, "Question to ask")
 )
 
@@ -30,9 +31,9 @@ func main() {
 	defer conn.Close()
 	c := chatv1.NewChatServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	r, err := c.Ask(ctx, &chatv1.AskRequest{Question: *question})
+	r, err := c.Ask(ctx, &chatv1.AskRequest{Question: *question, DocumentPath: *doc_path})
 	if err != nil {
 		log.Fatalf("could not ask: %v", err)
 	}

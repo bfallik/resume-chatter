@@ -3,7 +3,8 @@ package chat.v1;
 // option go_package = "./proto";
 
 message AskRequest {
-    string question = 1;
+    string document_path = 1;
+    string question = 2;
 }
 
 message AskResponse {
