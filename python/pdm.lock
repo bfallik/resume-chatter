@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:1bbb7f66a0b43ab67ecd518b17361cf7d9f812a71533408f1bd4d569b8786cd6"
+content_hash = "sha256:216ac0055ecfa3728c9303279ddd610676f14ca0418919ee86aacc93a84bd7e8"
 
 [[metadata.targets]]
 requires_python = "==3.12.*"
@@ -252,6 +252,20 @@ files = [
     {file = "greenlet-3.0.3-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:2516a9957eed41dd8f1ec0c604f1cdc86758b587d964668b5b196a9db5bfcde6"},
     {file = "greenlet-3.0.3-cp312-cp312-win_amd64.whl", hash = "sha256:bba5387a6975598857d86de9eac14210a49d554a77eb8261cc68b7d082f78ce2"},
     {file = "greenlet-3.0.3.tar.gz", hash = "sha256:43374442353259554ce33599da8b692d5aa96f8976d567d4badf263371fbe491"},
+]
+
+[[package]]
+name = "grpc-stubs"
+version = "1.53.0.5"
+requires_python = ">=3.6"
+summary = "Mypy stubs for gRPC"
+groups = ["default"]
+dependencies = [
+    "grpcio",
+]
+files = [
+    {file = "grpc-stubs-1.53.0.5.tar.gz", hash = "sha256:3e1b642775cbc3e0c6332cfcedfccb022176db87e518757bef3a1241397be406"},
+    {file = "grpc_stubs-1.53.0.5-py3-none-any.whl", hash = "sha256:04183fb65a1b166a1febb9627e3d9647d3926ccc2dfe049fe7b6af243428dbe1"},
 ]
 
 [[package]]
@@ -831,6 +845,17 @@ dependencies = [
 files = [
     {file = "tqdm-4.66.5-py3-none-any.whl", hash = "sha256:90279a3770753eafc9194a0364852159802111925aa30eb3f9d85b0e805ac7cd"},
     {file = "tqdm-4.66.5.tar.gz", hash = "sha256:e1020aef2e5096702d8a025ac7d16b1577279c9d63f8375b63083e9a5f0fcbad"},
+]
+
+[[package]]
+name = "types-protobuf"
+version = "5.27.0.20240907"
+requires_python = ">=3.8"
+summary = "Typing stubs for protobuf"
+groups = ["default"]
+files = [
+    {file = "types-protobuf-5.27.0.20240907.tar.gz", hash = "sha256:bb6f90f66b18d4d1c75667b6586334b0573a6fcee5eb0142a7348a765a7cbadc"},
+    {file = "types_protobuf-5.27.0.20240907-py3-none-any.whl", hash = "sha256:5443270534cc8072909ef7ad9e1421ccff924ca658749a6396c0c43d64c32676"},
 ]
 
 [[package]]

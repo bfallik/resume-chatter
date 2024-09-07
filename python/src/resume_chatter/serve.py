@@ -1,25 +1,22 @@
 import logging
+from concurrent import futures
+from typing import Any
 
+import grpc
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables.base import Runnable
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from protocgenpy.chat.v1 import chat_pb2, chat_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
 
-from concurrent import futures
-
-import grpc
-from protocgenpy.chat.v1 import chat_pb2, chat_pb2_grpc
-
-
 class ChatService(chat_pb2_grpc.ChatServiceServicer):
-    def Ask(self, request, context):
+    def Ask(self, request: Any, context: Any) -> chat_pb2.AskResponse:
         model = "gpt-4o-mini"
         logger.warning(f"using model: {model}")
 
@@ -60,7 +57,7 @@ def serve() -> None:
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=10), options=(("grpc.so_reuseport", 0),)
     )
-    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatService(), server)
+    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatService(), server)  # type: ignore[no-untyped-call]
     server.add_insecure_port("[::]:" + port)
     server.start()
     print("Server started, listening on " + port)

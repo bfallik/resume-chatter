@@ -12,6 +12,8 @@ dependencies = [
     "faiss-cpu>=1.8.0.post1",
     "grpcio>=1.66.1",
     "protobuf>=5.28.0",
+    "types-protobuf>=5.27.0.20240907",
+    "grpc-stubs>=1.53.0.5",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"

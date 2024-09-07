@@ -15,5 +15,7 @@ plugins:
     out: python/src/protocgenpy
   - remote: buf.build/grpc/python
     out: python/src/protocgenpy
+  - remote: buf.build/community/nipunn1313-mypy
+    out: python/src/protocgenpy
 inputs:
   - directory: protoc
