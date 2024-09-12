@@ -69,9 +69,7 @@ func Serve(address string) error {
 			Bubble:  content[0], // BF TODO: handle this
 		})
 
-		idx := components.Chat(chatHistory)
-		err := idx.Render(r.Context(), w)
-		if err != nil {
+		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("error rendering HTML template"))
