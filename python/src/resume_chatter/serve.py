@@ -1,8 +1,11 @@
 import logging
+import sys
 from concurrent import futures
 from typing import Any
 
 import grpc
+from grpc_health.v1 import health_pb2, health_pb2_grpc
+from grpc_health.v1.health import HealthServicer
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.document_loaders import PyPDFLoader
@@ -15,7 +18,10 @@ from protocgenpy.chat.v1 import chat_pb2, chat_pb2_grpc
 logger = logging.getLogger(__name__)
 
 
-class ChatService(chat_pb2_grpc.ChatServiceServicer):
+class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
+    def __init__(self, *args, **kwargs):
+        pass
+
     def Ask(self, request: Any, context: Any) -> chat_pb2.AskResponse:
         model = "gpt-4o-mini"
         logger.warning(f"using model: {model}")
@@ -43,12 +49,16 @@ class ChatService(chat_pb2_grpc.ChatServiceServicer):
         retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
         return chat_pb2.AskResponse(
-            response=str(retrieval_chain.invoke({"input": request.question}))
+            response=str(retrieval_chain.invoke({"input": request.question})['answer'])
         )
 
 
 def serve() -> None:
     port = "8081"
+
+    health = HealthServicer()
+    health.set("plugin", health_pb2.HealthCheckResponse.ServingStatus.Value("SERVING"))
+
     # GRPC enables SO_REUSEPORT by default.
     #   https://groups.google.com/g/grpc-io/c/RB69llv2tC4
     # This may be recommended for production workloads but causes problems
@@ -57,8 +67,12 @@ def serve() -> None:
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=10), options=(("grpc.so_reuseport", 0),)
     )
-    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatService(), server)  # type: ignore[no-untyped-call]
-    server.add_insecure_port("[::]:" + port)
+    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)  # type: ignore[no-untyped-call]
+    health_pb2_grpc.add_HealthServicer_to_server(health, server)
+    server.add_insecure_port("127.0.0.1:" + port)
     server.start()
-    print("Server started, listening on " + port)
+
+    print("1|1|tcp|127.0.0.1:8081|grpc")
+    sys.stdout.flush()
+
     server.wait_for_termination()

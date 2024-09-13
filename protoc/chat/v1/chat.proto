@@ -11,8 +11,6 @@ message AskResponse {
     string response = 1;
 }
 
-message Empty {}
-
 service ChatService {
     rpc Ask(AskRequest) returns (AskResponse);
 }
