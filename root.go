@@ -1,21 +1,22 @@
 package root
 
 import (
+	"bytes"
 	"context"
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"time"
 
 	"github.com/bfallik/resume-chatter/internal/model"
-	chatv1 "github.com/bfallik/resume-chatter/protocgengo/chat/v1"
 	"github.com/bfallik/resume-chatter/views/components"
 	"github.com/bfallik/resume-chatter/views/pages"
-	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/go-plugin"
-	"google.golang.org/grpc"
+	"github.com/tmc/langchaingo/chains"
+	"github.com/tmc/langchaingo/documentloaders"
+	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/tmc/langchaingo/textsplitter"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -36,70 +37,9 @@ var chatHistory []model.Chat = []model.Chat{
 	},
 }
 
-var Handshake = plugin.HandshakeConfig{
-	// This isn't required when using VersionedPlugins
-	ProtocolVersion:  1,
-	MagicCookieKey:   "BASIC_PLUGIN",
-	MagicCookieValue: "hello", // BF TODO
-}
-
-type GRPCClient struct{ client chatv1.ChatServiceClient }
-
-func (m *GRPCClient) Ask(ctx context.Context, in *chatv1.AskRequest, opts ...grpc.CallOption) (*chatv1.AskResponse, error) {
-	return m.client.Ask(ctx, in, opts...)
-}
-
-// LLM is the interface that we're exposing as a plugin.
-type LLM interface {
-	Ask(request chatv1.AskRequest) (chatv1.AskResponse, error)
-}
-
-type LLMGRPCPlugin struct {
-	plugin.Plugin
-	Impl LLM
-}
-
-func (p *LLMGRPCPlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
-	panic("NOT IMPLEMENTED")
-}
-
-func (p *LLMGRPCPlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
-	return &GRPCClient{client: chatv1.NewChatServiceClient(c)}, nil
-}
-
-const LLMKey = "llm_grpc"
-
-// PluginMap is the map of plugins we can dispense.
-var PluginMap = map[string]plugin.Plugin{
-	LLMKey: &LLMGRPCPlugin{},
-}
-
 func Serve(address string) error {
 	start := time.Now()
 	log.Printf("started %v", start.Format(time.RFC1123))
-
-	llmPlugin := os.Getenv("LLM_PLUGIN")
-	if len(llmPlugin) == 0 {
-		log.Fatalln("missing LLM_PLUGIN env var")
-	}
-
-	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig:  Handshake,
-		Plugins:          PluginMap,
-		Cmd:              exec.Command("sh", "-c", os.Getenv("LLM_PLUGIN")),
-		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		Logger: hclog.FromStandardLogger(
-			log.Default(),
-			&hclog.LoggerOptions{Name: "plugin", Level: hclog.Debug},
-		),
-	})
-	defer client.Kill()
-
-	addr, err := client.Start()
-	if err != nil {
-		log.Fatalf("plugin start error: %v", err)
-	}
-	log.Println("plugin listening on", addr)
 
 	r := chi.NewRouter()
 
@@ -138,40 +78,50 @@ func Serve(address string) error {
 			Bubble:  question,
 		})
 
-		// Connect via RPC
-		rpcClient, err := client.Client()
+		llm, err := openai.New()
 		if err != nil {
-			log.Printf("unable to get client: %v\n", err)
+			log.Printf("openai LLM: %v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("unable to get client"))
+			w.Write([]byte("openai LLM"))
 			return
 		}
 
-		// Request the plugin
-		raw, err := rpcClient.Dispense(LLMKey)
-		if err != nil {
-			log.Printf("unable to dispense: %v\n", err)
+		buf := new(bytes.Buffer)
+		cmd := exec.Command("pdftotext", "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf", "-")
+		cmd.Stdout = buf
+		if err := cmd.Run(); err != nil {
+			log.Printf("pdftotext: %+v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("unable to dispense"))
+			w.Write([]byte("pdftotext"))
 			return
 		}
 
-		chatService := raw.(chatv1.ChatServiceClient)
-		response, err := chatService.Ask(r.Context(), &chatv1.AskRequest{
-			DocumentPath: "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf",
-			Question:     question,
+		loader := documentloaders.NewText(buf)
+		docs, err := loader.LoadAndSplit(r.Context(), textsplitter.NewRecursiveCharacter())
+		if err != nil {
+			log.Printf("LoadAndSplit: %+v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("LoadAndSplit"))
+			return
+		}
+
+		// TODO - find similar docs
+
+		stuffQAChain := chains.LoadStuffQA(llm)
+		answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
+			"input_documents": docs,
+			"question":        "Where did Brian go to collage?",
 		})
 		if err != nil {
-			log.Printf("chat service error: %v\n", err)
+			log.Printf("LoadStuffQA: %+v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("chat service error"))
-			return
+			w.Write([]byte("LoadStuffQA"))
 		}
 
 		chatHistory = append(chatHistory, model.Chat{
 			IsStart: false,
 			Header:  "Anakin",
-			Bubble:  response.Response,
+			Bubble:  fmt.Sprintf("%v", answer),
 		})
 
 		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
