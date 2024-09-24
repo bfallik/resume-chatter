@@ -11,11 +11,8 @@ build-templ:
 build-webserver: build-tw-css build-templ (go-build "webserver")
 
 build-github-workflows-import-schema:
-  # NOTE: this version is the only one that currently works
-  curl -o internal/ci/github/github.actions.workflow.schema.json https://raw.githubusercontent.com/SchemaStore/schemastore/5ffe36662a8fcab3c32e8fbca39c5253809e6913/src/schemas/json/github-workflow.json
-  # NOTE: but the schema field needs to be replaced
-  contents="$( jq '.["$schema"] = "https://json-schema.org/draft/2020-12/schema"' internal/ci/github/github.actions.workflow.schema.json )" && \
-  echo -E "${contents}" > internal/ci/github/github.actions.workflow.schema.json
+  # NOTE: this requires cue v0.11.0-alpha.2 or later
+  curl -o internal/ci/github/github.actions.workflow.schema.json https://raw.githubusercontent.com/SchemaStore/schemastore/f728a2d857a938979f09b0a7f014fbe0bc1898ee/src/schemas/json/github-workflow.json
   cue import -p github -f -l '#Workflow:' internal/ci/github/github.actions.workflow.schema.json
 
 build-github-workflows:
