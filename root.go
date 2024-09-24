@@ -50,24 +50,21 @@ func Serve(address string) error {
 		err := idx.Render(r.Context(), w)
 		if err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("error rendering HTML template"))
+			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
 	})
 
 	r.Post("/ask", func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			log.Printf("err parsing form: %+v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("error parsing form"))
+			http.Error(w, "error parsing form", http.StatusInternalServerError)
 			return
 		}
 
 		content, ok := r.Form["content"]
 		if !ok {
 			log.Printf("missing form value: content\n")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("missing form value: content"))
+			http.Error(w, "missing form value: content", http.StatusInternalServerError)
 			return
 		}
 
@@ -81,8 +78,7 @@ func Serve(address string) error {
 		llm, err := openai.New()
 		if err != nil {
 			log.Printf("openai LLM: %v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("openai LLM"))
+			http.Error(w, "openai LLM", http.StatusInternalServerError)
 			return
 		}
 
@@ -91,8 +87,7 @@ func Serve(address string) error {
 		cmd.Stdout = buf
 		if err := cmd.Run(); err != nil {
 			log.Printf("pdftotext: %+v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("pdftotext"))
+			http.Error(w, "pdftotext", http.StatusInternalServerError)
 			return
 		}
 
@@ -100,8 +95,7 @@ func Serve(address string) error {
 		docs, err := loader.LoadAndSplit(r.Context(), textsplitter.NewRecursiveCharacter())
 		if err != nil {
 			log.Printf("LoadAndSplit: %+v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("LoadAndSplit"))
+			http.Error(w, "LoadAndSplit", http.StatusInternalServerError)
 			return
 		}
 
@@ -114,8 +108,7 @@ func Serve(address string) error {
 		})
 		if err != nil {
 			log.Printf("LoadStuffQA: %+v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("LoadStuffQA"))
+			http.Error(w, "LoadStuffQA", http.StatusInternalServerError)
 		}
 
 		chatHistory = append(chatHistory, model.Chat{
@@ -126,8 +119,7 @@ func Serve(address string) error {
 
 		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("error rendering HTML template"))
+			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
 	})
 
