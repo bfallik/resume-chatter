@@ -100,7 +100,7 @@ func Serve(address string) error {
 		stuffQAChain := chains.LoadStuffQA(llm)
 		answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
 			"input_documents": docs,
-			"question":        "Where did Brian go to collage?",
+			"question":        question,
 		})
 		if err != nil {
 			log.Printf("LoadStuffQA: %+v\n", err)
