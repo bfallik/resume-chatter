@@ -24,7 +24,7 @@ run-webserver:
   set -o allexport ; source ./.env ; set +o allexport; ./tmp/webserver
 
 go-build target:
-  go build -o tmp/{{target}} ./cmd/{{target}}
+  go build -o "tmp/{{target}}" "./cmd/{{target}}"
 
 install-templ:
   go install github.com/a-h/templ/cmd/templ@latest
