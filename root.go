@@ -41,6 +41,26 @@ func Serve(address string) error {
 	start := time.Now()
 	log.Printf("started %v", start.Format(time.RFC1123))
 
+	ctx := context.Background()
+
+	llm, err := openai.New()
+	if err != nil {
+		return err
+	}
+
+	buf := new(bytes.Buffer)
+	cmd := exec.Command("pdftotext", "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf", "-")
+	cmd.Stdout = buf
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	loader := documentloaders.NewText(buf)
+	docs, err := loader.LoadAndSplit(ctx, textsplitter.NewRecursiveCharacter())
+	if err != nil {
+		return err
+	}
+
 	r := chi.NewRouter()
 
 	r.Handle("/static/*", http.FileServer(http.FS(staticFS)))
@@ -74,30 +94,6 @@ func Serve(address string) error {
 			Header:  "Obi-Wan Kenobi",
 			Bubble:  question,
 		})
-
-		llm, err := openai.New()
-		if err != nil {
-			log.Printf("openai LLM: %v\n", err)
-			http.Error(w, "openai LLM", http.StatusInternalServerError)
-			return
-		}
-
-		buf := new(bytes.Buffer)
-		cmd := exec.Command("pdftotext", "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf", "-")
-		cmd.Stdout = buf
-		if err := cmd.Run(); err != nil {
-			log.Printf("pdftotext: %+v\n", err)
-			http.Error(w, "pdftotext", http.StatusInternalServerError)
-			return
-		}
-
-		loader := documentloaders.NewText(buf)
-		docs, err := loader.LoadAndSplit(r.Context(), textsplitter.NewRecursiveCharacter())
-		if err != nil {
-			log.Printf("LoadAndSplit: %+v\n", err)
-			http.Error(w, "LoadAndSplit", http.StatusInternalServerError)
-			return
-		}
 
 		// TODO - find similar docs
 
