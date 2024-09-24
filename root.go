@@ -94,6 +94,7 @@ func Serve(address string) error {
 			Header:  "Obi-Wan Kenobi",
 			Bubble:  question,
 		})
+		log.Println("question: ", question)
 
 		// TODO - find similar docs
 
@@ -111,8 +112,9 @@ func Serve(address string) error {
 		chatHistory = append(chatHistory, model.Chat{
 			IsStart: false,
 			Header:  "Anakin",
-			Bubble:  fmt.Sprintf("%v", answer),
+			Bubble:  fmt.Sprintf("%v", answer["text"]),
 		})
+		log.Println("question: ", answer)
 
 		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
