@@ -24,10 +24,11 @@ type Card struct {
 }
 
 type Chat struct {
-	IsStart bool
-	Header  string
-	Bubble  string
-	Footer  string
+	IsStart   bool
+	Header    string
+	IsWaiting bool
+	Bubble    string
+	Footer    string
 }
 
 type Checkbox struct {

@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/a-h/templ/cmd/templ/generatecmd/sse"
 	"github.com/bfallik/resume-chatter/internal/model"
 	"github.com/bfallik/resume-chatter/views/components"
 	"github.com/bfallik/resume-chatter/views/pages"
@@ -26,14 +27,16 @@ var staticFS embed.FS
 
 var chatHistory []model.Chat = []model.Chat{
 	{
-		IsStart: true,
-		Header:  "Obi-Wan Kenobi",
-		Bubble:  "You were the Chosen One!",
+		IsStart:   true,
+		Header:    "Obi-Wan Kenobi",
+		IsWaiting: false,
+		Bubble:    "You were the Chosen One!",
 	},
 	{
-		IsStart: false,
-		Header:  "Anakin",
-		Bubble:  "I loved you.",
+		IsStart:   false,
+		Header:    "Anakin",
+		IsWaiting: false,
+		Bubble:    "I loved you.",
 	},
 }
 
@@ -47,6 +50,8 @@ func Serve(address string) error {
 	if err != nil {
 		return err
 	}
+
+	server := sse.New()
 
 	buf := new(bytes.Buffer)
 	cmd := exec.Command("pdftotext", "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf", "-")
@@ -89,37 +94,66 @@ func Serve(address string) error {
 		}
 
 		question := content[0] // BF TODO: handle this
-		chatHistory = append(chatHistory, model.Chat{
-			IsStart: true,
-			Header:  "Obi-Wan Kenobi",
-			Bubble:  question,
-		})
 		log.Println("question: ", question)
+		chatHistory = append(chatHistory,
+			model.Chat{
+				IsStart:   true,
+				Header:    "Obi-Wan Kenobi",
+				IsWaiting: false,
+				Bubble:    question,
+			},
+			model.Chat{
+				IsStart:   false,
+				Header:    "Anakin",
+				IsWaiting: true,
+				Bubble:    "",
+			})
 
-		// TODO - find similar docs
+		// BF TODO: this is super racy!
+		go func() {
+			time.Sleep(2 * time.Second)
 
-		stuffQAChain := chains.LoadStuffQA(llm)
-		answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
-			"input_documents": docs,
-			"question":        question,
-		})
-		if err != nil {
-			log.Printf("LoadStuffQA: %+v\n", err)
-			http.Error(w, "LoadStuffQA", http.StatusInternalServerError)
-			return
-		}
+			// TODO - find similar docs
 
-		chatHistory = append(chatHistory, model.Chat{
-			IsStart: false,
-			Header:  "Anakin",
-			Bubble:  fmt.Sprintf("%v", answer["text"]),
-		})
-		log.Println("question: ", answer)
+			stuffQAChain := chains.LoadStuffQA(llm)
+			answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
+				"input_documents": docs,
+				"question":        question,
+			})
+			if err != nil {
+				log.Printf("LoadStuffQA: %+v\n", err)
+				http.Error(w, "LoadStuffQA", http.StatusInternalServerError)
+				return
+			}
+
+			chatHistory[len(chatHistory)-1].IsWaiting = false
+			chatHistory[len(chatHistory)-1].Bubble = fmt.Sprintf("%v", answer["text"])
+			log.Println("answer: ", answer)
+
+			server.Send("chat-events", answer["text"].(string))
+		}()
 
 		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
+	})
+
+	r.Get("/chat-history", func(w http.ResponseWriter, r *http.Request) {
+		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
+			log.Printf("err rendering html template: %+v\n", err)
+			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
+		}
+	})
+
+	r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("SSE client connected")
+		go func() {
+			<-r.Context().Done()
+			log.Println("SSE client disconnected")
+		}()
+
+		server.ServeHTTP(w, r)
 	})
 
 	log.Println("webserver listening on", address)
