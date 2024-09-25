@@ -129,7 +129,6 @@ func Serve(address string) error {
 			})
 			if err != nil {
 				log.Printf("LoadStuffQA: %+v\n", err)
-				http.Error(w, "LoadStuffQA", http.StatusInternalServerError)
 				return
 			}
 
