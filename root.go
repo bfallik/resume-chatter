@@ -153,11 +153,6 @@ func Serve(address string) error {
 	})
 
 	r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
-		go func() {
-			<-r.Context().Done()
-			//	SSE client disconnected
-		}()
-
 		server.ServeHTTP(w, r)
 	})
 
