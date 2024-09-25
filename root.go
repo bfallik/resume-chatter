@@ -128,7 +128,7 @@ func Serve(address string) error {
 				"question":        question,
 			})
 			if err != nil {
-				log.Printf("LoadStuffQA: %+v\n", err)
+				log.Printf("error calling chain: %+v\n", err)
 				return
 			}
 
