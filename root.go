@@ -19,6 +19,7 @@ import (
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/textsplitter"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -67,6 +68,12 @@ func Serve(address string) error {
 	}
 
 	r := chi.NewRouter()
+
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Handle("/static/*", http.FileServer(http.FS(staticFS)))
 
@@ -147,10 +154,9 @@ func Serve(address string) error {
 	})
 
 	r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("SSE client connected")
 		go func() {
 			<-r.Context().Done()
-			log.Println("SSE client disconnected")
+			//	SSE client disconnected
 		}()
 
 		server.ServeHTTP(w, r)
