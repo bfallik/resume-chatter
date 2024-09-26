@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/bfallik/resume-chatter/internal/model"
@@ -25,18 +26,44 @@ import (
 //go:embed static/**
 var staticFS embed.FS
 
-var chatHistory []model.Chat = []model.Chat{
-	{
+type History struct {
+	data []model.Chat
+	mu   sync.RWMutex
+}
+
+func (h *History) GetChat() []model.Chat {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.data
+}
+
+func (h *History) Append(cs ...model.Chat) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.data = append(h.data, cs...)
+}
+
+func (h *History) UpdateWaiting(newBubble string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	ln := len(h.data)
+	h.data[ln-1].IsWaiting = false
+	h.data[ln-1].Bubble = newBubble
+}
+
+var chatHistory History = History{
+	data: []model.Chat{{
 		IsStart:   true,
 		Header:    "Obi-Wan Kenobi",
 		IsWaiting: false,
 		Bubble:    "You were the Chosen One!",
 	},
-	{
-		IsStart:   false,
-		Header:    "Anakin",
-		IsWaiting: false,
-		Bubble:    "I loved you.",
+		{
+			IsStart:   false,
+			Header:    "Anakin",
+			IsWaiting: false,
+			Bubble:    "I loved you.",
+		},
 	},
 }
 
@@ -75,7 +102,7 @@ func Serve(address string) error {
 	r.Handle("/static/*", http.FileServer(http.FS(staticFS)))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		idx := pages.Index(chatHistory, start)
+		idx := pages.Index(chatHistory.GetChat(), start)
 		err := idx.Render(r.Context(), w)
 		if err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
@@ -99,7 +126,7 @@ func Serve(address string) error {
 
 		question := content[0] // BF TODO: handle this
 		log.Println("question: ", question)
-		chatHistory = append(chatHistory,
+		chatHistory.Append(
 			model.Chat{
 				IsStart:   true,
 				Header:    "Obi-Wan Kenobi",
@@ -113,7 +140,6 @@ func Serve(address string) error {
 				Bubble:    "",
 			})
 
-		// BF TODO: this is super racy!
 		go func() {
 			time.Sleep(2 * time.Second)
 
@@ -129,19 +155,18 @@ func Serve(address string) error {
 				return
 			}
 
-			chatHistory[len(chatHistory)-1].IsWaiting = false
-			chatHistory[len(chatHistory)-1].Bubble = fmt.Sprintf("%v", answer["text"])
+			chatHistory.UpdateWaiting(fmt.Sprintf("%v", answer["text"]))
 			log.Println("answer: ", answer)
 		}()
 
-		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
+		if err := components.Chat(chatHistory.GetChat()).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
 	})
 
 	r.Get("/chat-history", func(w http.ResponseWriter, r *http.Request) {
-		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
+		if err := components.Chat(chatHistory.GetChat()).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
