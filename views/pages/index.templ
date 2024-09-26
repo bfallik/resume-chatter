@@ -8,7 +8,7 @@ import (
 
 templ Index(chat []model.Chat, start time.Time) {
 	@HTMLRoot() {
-		<main>
+		<main class="flex-grow">
 			<div class="px-20">
 				<h1 class="text-2xl font-semibold text-center pt-10">Resume Chatbot</h1>
 				<p class="pt-10">Lorem ipsum odor amet, consectetuer adipiscing elit. Tristique eu quis justo ante ridiculus et suscipit malesuada. Ad posuere nec congue interdum hendrerit quam nunc donec. Erat finibus adipiscing fermentum vel platea. Faucibus sapien vitae varius ex tristique tempus mi nostra. Arcu scelerisque accumsan class luctus felis velit accumsan. Purus rutrum volutpat dolor, feugiat aliquet vehicula gravida cursus. Urna ornare tortor primis interdum urna himenaeos.</p>
@@ -25,7 +25,7 @@ templ Index(chat []model.Chat, start time.Time) {
 				@components.Chat(chat)
 			</div>
 		</main>
-		<footer class="p-20">
+		<footer class="p-8">
 			<p class="text-center">Server started { start.Format(time.RFC1123) }</p>
 		</footer>
 	}
@@ -42,7 +42,7 @@ templ HTMLRoot() {
 			<script src="https://unpkg.com/htmx-ext-sse@2.2.2/sse.js"></script>
 			<title>Document</title>
 		</head>
-		<body class="w-full h-full min-h-svh">
+		<body class="w-full h-full flex flex-col min-h-svh">
 			{ children... }
 		</body>
 	</html>
