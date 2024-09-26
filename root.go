@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/a-h/templ/cmd/templ/generatecmd/sse"
 	"github.com/bfallik/resume-chatter/internal/model"
 	"github.com/bfallik/resume-chatter/views/components"
 	"github.com/bfallik/resume-chatter/views/pages"
@@ -51,8 +50,6 @@ func Serve(address string) error {
 	if err != nil {
 		return err
 	}
-
-	server := sse.New()
 
 	buf := new(bytes.Buffer)
 	cmd := exec.Command("pdftotext", "/home/bfallik/Documents/JobSearches/bfallik-resume/bfallik-resume.pdf", "-")
@@ -135,8 +132,6 @@ func Serve(address string) error {
 			chatHistory[len(chatHistory)-1].IsWaiting = false
 			chatHistory[len(chatHistory)-1].Bubble = fmt.Sprintf("%v", answer["text"])
 			log.Println("answer: ", answer)
-
-			server.Send("chat-events", answer["text"].(string))
 		}()
 
 		if err := components.Chat(chatHistory).Render(r.Context(), w); err != nil {
@@ -150,10 +145,6 @@ func Serve(address string) error {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
-	})
-
-	r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
-		server.ServeHTTP(w, r)
 	})
 
 	log.Println("webserver listening on", address)
