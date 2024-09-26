@@ -37,3 +37,6 @@ clean:
 
 staticcheck: build-tw-css build-templ
   staticcheck ./...
+
+check:
+  go test -race ./...
