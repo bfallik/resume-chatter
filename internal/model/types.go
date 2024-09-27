@@ -11,6 +11,10 @@ type Anchor struct {
 	Attrs templ.Attributes
 }
 
+type Alert struct {
+	MsgText string
+}
+
 type Button struct {
 	Label string
 	Attrs templ.Attributes

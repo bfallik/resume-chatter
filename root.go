@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -67,6 +68,9 @@ var chatHistory History = History{
 		},
 	},
 }
+
+// BF TODO: racy
+var llmErr error
 
 func Serve(address string) error {
 	start := time.Now()
@@ -157,6 +161,7 @@ func Serve(address string) error {
 			})
 			if err != nil {
 				log.Printf("error calling chain: %+v\n", err)
+				llmErr = errors.New("error calling LLM")
 				return
 			}
 
@@ -190,7 +195,16 @@ func Serve(address string) error {
 		if err := components.ChatHistoryElements(h[n]).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
+			return
 		}
+
+		if llmErr != nil {
+			if err := components.Alert(model.Alert{MsgText: llmErr.Error()}).Render(r.Context(), w); err != nil {
+				log.Printf("err rendering html template: %+v\n", err)
+				http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
+			}
+		}
+
 	})
 
 	log.Println("webserver listening on", address)
