@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
 
@@ -27,17 +28,17 @@ import (
 var staticFS embed.FS
 
 type History struct {
-	data []model.Chat
+	data []model.ChatMessage
 	mu   sync.RWMutex
 }
 
-func (h *History) GetChat() []model.Chat {
+func (h *History) GetChat() []model.ChatMessage {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.data
 }
 
-func (h *History) Append(cs ...model.Chat) {
+func (h *History) Append(cs ...model.ChatMessage) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.data = append(h.data, cs...)
@@ -52,7 +53,7 @@ func (h *History) UpdateWaiting(newBubble string) {
 }
 
 var chatHistory History = History{
-	data: []model.Chat{{
+	data: []model.ChatMessage{{
 		IsStart:   true,
 		Header:    "Obi-Wan Kenobi",
 		IsWaiting: false,
@@ -126,19 +127,23 @@ func Serve(address string) error {
 
 		question := content[0] // BF TODO: handle this
 		log.Println("question: ", question)
-		chatHistory.Append(
-			model.Chat{
+		ln := len(chatHistory.GetChat())
+		newMsgs := []model.ChatMessage{
+			{
 				IsStart:   true,
 				Header:    "Obi-Wan Kenobi",
 				IsWaiting: false,
 				Bubble:    question,
 			},
-			model.Chat{
-				IsStart:   false,
-				Header:    "Anakin",
-				IsWaiting: true,
-				Bubble:    "",
-			})
+			{
+				IsStart:             false,
+				Header:              "Anakin",
+				IsWaiting:           true,
+				WaitingMessageIndex: ln + 1,
+				Bubble:              "",
+			},
+		}
+		chatHistory.Append(newMsgs...)
 
 		go func() {
 			time.Sleep(2 * time.Second)
@@ -159,14 +164,30 @@ func Serve(address string) error {
 			log.Println("answer: ", answer)
 		}()
 
-		if err := components.Chat(chatHistory.GetChat()).Render(r.Context(), w); err != nil {
+		if err := components.ChatHistoryElements(newMsgs...).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}
 	})
 
-	r.Get("/chat-history", func(w http.ResponseWriter, r *http.Request) {
-		if err := components.Chat(chatHistory.GetChat()).Render(r.Context(), w); err != nil {
+	r.Get("/message", func(w http.ResponseWriter, r *http.Request) {
+		idxStr := r.URL.Query().Get("index")
+		n, err := strconv.Atoi(idxStr)
+		if err != nil {
+			log.Printf("err converting index '%v': %+v\n", idxStr, err)
+			http.Error(w, "error converting index", http.StatusBadRequest)
+			return
+		}
+
+		h := chatHistory.GetChat()
+		ln := len(h)
+		if n >= ln {
+			log.Printf("err converting index '%v': %+v\n", idxStr, err)
+			http.Error(w, "error converting index", http.StatusNotFound)
+			return
+		}
+
+		if err := components.ChatHistoryElements(h[n]).Render(r.Context(), w); err != nil {
 			log.Printf("err rendering html template: %+v\n", err)
 			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		}

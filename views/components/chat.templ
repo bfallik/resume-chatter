@@ -1,6 +1,10 @@
 package components
 
-import "github.com/bfallik/resume-chatter/internal/model"
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/bfallik/resume-chatter/internal/model"
+)
 
 func getChatStartEnd(isStart bool) string {
 	if isStart {
@@ -9,19 +13,36 @@ func getChatStartEnd(isStart bool) string {
 	return "chat chat-end"
 }
 
-templ Chat(chat []model.Chat) {
-	<div class="w-9/12" id="chat-history" hx-get="/chat-history">
-		for _, ch := range chat {
-			<div class={ getChatStartEnd(ch.IsStart) }>
-				<div class="chat-header">
-					{ ch.Header }
-				</div>
-				if ch.IsWaiting {
-					<span class="loading loading-dots loading-md" hx-get="/chat-history" hx-trigger="load delay:1s" hx-target="#chat-history"></span>
-				} else {
-					<div class="chat-bubble">{ ch.Bubble }</div>
-				}
-			</div>
-		}
+templ ChatHistory(chat []model.ChatMessage) {
+	<div class="w-9/12" id="chat-history">
+		@ChatHistoryElements(chat...)
 	</div>
+}
+
+func hxValsJSON(idx int) string {
+	vals := struct {
+		Index int `json:"index"`
+	}{Index: idx}
+	bytes, err := json.Marshal(vals)
+	if err != nil {
+		panic(fmt.Sprintf("unexpected json.Marshal(vals: %v) error: %v", vals, err))
+	}
+	return string(bytes)
+}
+
+templ ChatHistoryElements(elts ...model.ChatMessage) {
+	for _, elt := range elts {
+		<div class={ getChatStartEnd(elt.IsStart) }>
+			<div class="chat-header">
+				{ elt.Header }
+			</div>
+			if elt.IsWaiting {
+				<div class="answer" hx-trigger="load delay:1s" hx-get="/message" hx-target="closest div.chat" hx-swap="outerHTML" hx-vals={ hxValsJSON(elt.WaitingMessageIndex) }>
+					<span class="loading loading-dots loading-md"></span>
+				</div>
+			} else {
+				<div class="chat-bubble">{ elt.Bubble }</div>
+			}
+		</div>
+	}
 }

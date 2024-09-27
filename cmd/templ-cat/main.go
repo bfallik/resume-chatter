@@ -10,7 +10,7 @@ import (
 	"github.com/bfallik/resume-chatter/views/pages"
 )
 
-var chatHistory []model.Chat = []model.Chat{
+var chatHistory []model.ChatMessage = []model.ChatMessage{
 	{
 		IsStart:   true,
 		Header:    "Obi-Wan Kenobi",

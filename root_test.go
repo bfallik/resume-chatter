@@ -18,6 +18,6 @@ func TestHistorySync(t *testing.T) {
 			t.Errorf("test error: expected 0 or 2, got %v", len(h.GetChat()))
 		}
 	}()
-	h.Append(model.Chat{}, model.Chat{})
+	h.Append(model.ChatMessage{}, model.ChatMessage{})
 	wg.Wait()
 }
