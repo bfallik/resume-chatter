@@ -3,7 +3,7 @@ module github.com/bfallik/resume-chatter
 go 1.23.0
 
 require (
-	github.com/a-h/templ v0.2.771
+	github.com/a-h/templ v0.2.778
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/tmc/langchaingo v0.1.12
