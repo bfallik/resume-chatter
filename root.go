@@ -1,4 +1,4 @@
-package root
+package resume_chatter
 
 import (
 	"bytes"
