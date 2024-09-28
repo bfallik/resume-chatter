@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-templ Index(chat []model.ChatMessage, start time.Time) {
+templ Index(chat []model.ChatMessage, start time.Time, alert model.Alert) {
 	@HTMLRoot() {
 		<main class="flex-grow">
 			<div class="px-20">
-				<div role="alert" id="global-alert"></div>
+				@components.Alert(alert)
 				<h1 class="text-2xl font-semibold text-center pt-10">Resume Chatbot</h1>
 				<p class="pt-10">Lorem ipsum odor amet, consectetuer adipiscing elit. Tristique eu quis justo ante ridiculus et suscipit malesuada. Ad posuere nec congue interdum hendrerit quam nunc donec. Erat finibus adipiscing fermentum vel platea. Faucibus sapien vitae varius ex tristique tempus mi nostra. Arcu scelerisque accumsan class luctus felis velit accumsan. Purus rutrum volutpat dolor, feugiat aliquet vehicula gravida cursus. Urna ornare tortor primis interdum urna himenaeos.</p>
 				<form hx-post="/ask" hx-target="#chat-history" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful) this.reset()">
@@ -40,7 +40,6 @@ templ HTMLRoot() {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link rel="stylesheet" type="text/css" href="/static/css/tw.css"/>
 			<script src="https://unpkg.com/htmx.org@2.0.0/dist/htmx.min.js"></script>
-			<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 			<title>Document</title>
 		</head>
 		<body class="w-full h-full flex flex-col min-h-svh">

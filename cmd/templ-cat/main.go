@@ -28,7 +28,7 @@ var chatHistory []model.ChatMessage = []model.ChatMessage{
 func main() {
 	start := time.Now()
 
-	if err := pages.Index(chatHistory, start).Render(context.Background(), os.Stdout); err != nil {
+	if err := pages.Index(chatHistory, start, model.Alert{}).Render(context.Background(), os.Stdout); err != nil {
 		log.Fatalf("failed to write output file: %v", err)
 	}
 }

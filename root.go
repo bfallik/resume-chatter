@@ -65,6 +65,15 @@ func (a *LLMAlert) GetErr() error {
 	return a.llmErr
 }
 
+func (a *LLMAlert) Model() model.Alert {
+	if a.GetErr() == nil {
+		return model.Alert{}
+	}
+	return model.Alert{
+		MsgText: a.llmErr.Error(),
+	}
+}
+
 func (a *LLMAlert) SetErr(err error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -151,7 +160,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 }
 
 func (s *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
-	idx := pages.Index(s.ChatHistory.GetChat(), s.Start)
+	idx := pages.Index(s.ChatHistory.GetChat(), s.Start, s.Alert.Model())
 	err := idx.Render(r.Context(), w)
 	if err != nil {
 		slog.Error("rendering html template: ", slog.Any("error", err))
@@ -238,10 +247,19 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	alertErr := s.Alert.GetErr()
 	if alertErr != nil {
-		if err := components.Alert(model.Alert{MsgText: alertErr.Error()}).Render(r.Context(), w); err != nil {
+		if err := components.Alert(s.Alert.Model()).Render(r.Context(), w); err != nil {
 			slog.Error("alert render", slog.Any("error", err))
 			http.Error(w, "error rendering alert template", http.StatusInternalServerError)
 		}
+	}
+}
+
+func (s *Server) DismissHandler(w http.ResponseWriter, r *http.Request) {
+	s.Alert.SetErr(nil)
+	w.WriteHeader(http.StatusOK)
+	if err := components.Alert(s.Alert.Model()).Render(r.Context(), w); err != nil {
+		slog.Error("alert render", slog.Any("error", err))
+		http.Error(w, "error rendering alert template", http.StatusInternalServerError)
 	}
 }
 
@@ -263,6 +281,7 @@ func (s *Server) Serve(address string) error {
 	r.Get("/", s.RootHandler)
 	r.Post("/ask", s.AskHandler)
 	r.Get("/message", s.MessageHandler)
+	r.Post("/dismiss", s.DismissHandler)
 
 	slog.Info("webserver listening on", "address", address)
 	return http.ListenAndServe(address, r)
