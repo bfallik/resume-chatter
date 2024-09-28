@@ -8,7 +8,7 @@ build-tw-css:
 build-templ:
   templ generate
 
-build-webserver: build-tw-css build-templ (go-build "webserver")
+build-webserver: build-templ (go-build "webserver")
 
 build-github-workflows-import-schema:
   # NOTE: this requires cue v0.11.0-alpha.2 or later
