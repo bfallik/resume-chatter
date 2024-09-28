@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	resume_chatter "github.com/bfallik/resume-chatter"
 )
@@ -13,8 +13,10 @@ func main() {
 
 	svr, err := resume_chatter.NewServer(ctx)
 	if err != nil {
-		log.Fatalln("error creating server: ", err)
+		slog.Error("creating server", slog.Any("error", err))
 	}
 
-	log.Fatalln(svr.Serve(a))
+	if err := svr.Serve(a); err != nil {
+		slog.Error("serve", slog.Any("error", err))
+	}
 }

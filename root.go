@@ -6,7 +6,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -121,7 +121,7 @@ type Server struct {
 
 func NewServer(ctx context.Context) (*Server, error) {
 	start := time.Now()
-	log.Printf("started %v", start.Format(time.RFC1123))
+	slog.Info("server", "start", start.Format(time.RFC1123))
 
 	llm, err := NewLLM(ctx)
 	if err != nil {
@@ -154,27 +154,27 @@ func (s *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 	idx := pages.Index(s.ChatHistory.GetChat(), s.Start)
 	err := idx.Render(r.Context(), w)
 	if err != nil {
-		log.Printf("err rendering html template: %+v\n", err)
+		slog.Error("rendering html template: ", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 	}
 }
 
 func (s *Server) AskHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		log.Printf("err parsing form: %+v\n", err)
+		slog.Error("parsing form: ", slog.Any("error", err))
 		http.Error(w, "error parsing form", http.StatusInternalServerError)
 		return
 	}
 
 	content, ok := r.Form["content"]
 	if !ok {
-		log.Printf("missing form value: content\n")
+		slog.Error("missing form value", slog.Any("content", content))
 		http.Error(w, "missing form value: content", http.StatusInternalServerError)
 		return
 	}
 
 	question := content[0] // BF TODO: handle this
-	log.Println("question: ", question)
+	slog.Info("", "question", question)
 	ln := len(s.ChatHistory.GetChat())
 	newMsgs := []model.ChatMessage{
 		{
@@ -198,17 +198,17 @@ func (s *Server) AskHandler(w http.ResponseWriter, r *http.Request) {
 
 		answer, err := s.LLM.Call(context.Background(), question)
 		if err != nil {
-			log.Printf("error calling chain: %+v\n", err)
+			slog.Error("LLM chain call", slog.Any("error", err))
 			s.Alert.SetErr(errors.New("error calling LLM"))
 			return
 		}
 
 		s.ChatHistory.UpdateWaiting(fmt.Sprintf("%v", answer["text"]))
-		log.Println("answer: ", answer)
+		slog.Info("", "answer", answer)
 	}()
 
 	if err := components.ChatHistoryElements(newMsgs...).Render(r.Context(), w); err != nil {
-		log.Printf("err rendering html template: %+v\n", err)
+		slog.Error("chat history render", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 	}
 }
@@ -217,21 +217,21 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	idxStr := r.URL.Query().Get("index")
 	n, err := strconv.Atoi(idxStr)
 	if err != nil {
-		log.Printf("err converting index '%v': %+v\n", idxStr, err)
-		http.Error(w, "error converting index", http.StatusBadRequest)
+		slog.Error("index out of range", slog.String("index", idxStr), slog.Any("error", err))
+		http.Error(w, "index out of range", http.StatusBadRequest)
 		return
 	}
 
 	h := s.ChatHistory.GetChat()
 	ln := len(h)
 	if n >= ln {
-		log.Printf("err converting index '%v': %+v\n", idxStr, err)
+		slog.Error("out of bounds", slog.Int("index", n), slog.Int("len", ln))
 		http.Error(w, "error converting index", http.StatusNotFound)
 		return
 	}
 
 	if err := components.ChatHistoryElements(h[n]).Render(r.Context(), w); err != nil {
-		log.Printf("err rendering html template: %+v\n", err)
+		slog.Error("chat history render", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		return
 	}
@@ -239,8 +239,8 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	alertErr := s.Alert.GetErr()
 	if alertErr != nil {
 		if err := components.Alert(model.Alert{MsgText: alertErr.Error()}).Render(r.Context(), w); err != nil {
-			log.Printf("err rendering html template: %+v\n", err)
-			http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
+			slog.Error("alert render", slog.Any("error", err))
+			http.Error(w, "error rendering alert template", http.StatusInternalServerError)
 		}
 	}
 }
@@ -264,6 +264,6 @@ func (s *Server) Serve(address string) error {
 	r.Post("/ask", s.AskHandler)
 	r.Get("/message", s.MessageHandler)
 
-	log.Println("webserver listening on", address)
+	slog.Info("webserver listening on", "address", address)
 	return http.ListenAndServe(address, r)
 }
