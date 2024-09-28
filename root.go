@@ -69,8 +69,24 @@ var chatHistory History = History{
 	},
 }
 
-// BF TODO: racy
-var llmErr error
+type LLMAlert struct {
+	llmErr error
+	mu     sync.RWMutex
+}
+
+func (a *LLMAlert) GetErr() error {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.llmErr
+}
+
+func (a *LLMAlert) SetErr(err error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.llmErr = err
+}
+
+var alert LLMAlert = LLMAlert{}
 
 func Serve(address string) error {
 	start := time.Now()
@@ -161,7 +177,7 @@ func Serve(address string) error {
 			})
 			if err != nil {
 				log.Printf("error calling chain: %+v\n", err)
-				llmErr = errors.New("error calling LLM")
+				alert.SetErr(errors.New("error calling LLM"))
 				return
 			}
 
@@ -198,8 +214,9 @@ func Serve(address string) error {
 			return
 		}
 
-		if llmErr != nil {
-			if err := components.Alert(model.Alert{MsgText: llmErr.Error()}).Render(r.Context(), w); err != nil {
+		alertErr := alert.GetErr()
+		if alertErr != nil {
+			if err := components.Alert(model.Alert{MsgText: alertErr.Error()}).Render(r.Context(), w); err != nil {
 				log.Printf("err rendering html template: %+v\n", err)
 				http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 			}
