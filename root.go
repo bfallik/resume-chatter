@@ -71,18 +71,12 @@ func (a *LLMAlert) SetErr(err error) {
 	a.llmErr = err
 }
 
-type Server struct {
-	Start       time.Time
-	LLM         *openai.LLM
-	Docs        []schema.Document
-	ChatHistory History
-	Alert       LLMAlert
+type LLM struct {
+	LLM  *openai.LLM
+	Docs []schema.Document
 }
 
-func NewServer(ctx context.Context) (*Server, error) {
-	start := time.Now()
-	log.Printf("started %v", start.Format(time.RFC1123))
-
+func NewLLM(ctx context.Context) (*LLM, error) {
 	llm, err := openai.New()
 	if err != nil {
 		return nil, err
@@ -101,10 +95,42 @@ func NewServer(ctx context.Context) (*Server, error) {
 		return nil, err
 	}
 
+	return &LLM{
+		LLM:  llm,
+		Docs: docs,
+	}, nil
+}
+
+func (l *LLM) Call(ctx context.Context, question string) (map[string]any, error) {
+	// TODO - find similar docs
+
+	stuffQAChain := chains.LoadStuffQA(l.LLM)
+	return chains.Call(ctx, stuffQAChain, map[string]any{
+		"input_documents": l.Docs,
+		"question":        question,
+	})
+}
+
+type Server struct {
+	Start       time.Time
+	LLM         *LLM
+	Docs        []schema.Document
+	ChatHistory History
+	Alert       LLMAlert
+}
+
+func NewServer(ctx context.Context) (*Server, error) {
+	start := time.Now()
+	log.Printf("started %v", start.Format(time.RFC1123))
+
+	llm, err := NewLLM(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Server{
 		Start: start,
 		LLM:   llm,
-		Docs:  docs,
 		ChatHistory: History{
 			data: []model.ChatMessage{
 				{
@@ -170,13 +196,7 @@ func (s *Server) AskHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		time.Sleep(2 * time.Second)
 
-		// TODO - find similar docs
-
-		stuffQAChain := chains.LoadStuffQA(s.LLM)
-		answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
-			"input_documents": s.Docs,
-			"question":        question,
-		})
+		answer, err := s.LLM.Call(context.Background(), question)
 		if err != nil {
 			log.Printf("error calling chain: %+v\n", err)
 			s.Alert.SetErr(errors.New("error calling LLM"))
