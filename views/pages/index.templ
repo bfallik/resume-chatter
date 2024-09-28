@@ -3,6 +3,7 @@ package pages
 import (
 	"github.com/bfallik/resume-chatter/internal/model"
 	"github.com/bfallik/resume-chatter/views/components"
+	"github.com/hako/durafmt"
 	"time"
 )
 
@@ -27,7 +28,7 @@ templ Index(chat []model.ChatMessage, start time.Time, alert model.Alert) {
 			</div>
 		</main>
 		<footer class="p-8">
-			<p class="text-center">Server started { start.Format(time.RFC1123) }</p>
+			<p class="text-center">Server started { start.Format(time.RFC1123) }, { durafmt.Parse(time.Since(start)).LimitFirstN(2).String() } ago</p>
 		</footer>
 	}
 }
