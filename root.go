@@ -202,20 +202,6 @@ func (s *Server) AskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s.ChatHistory.Append(newMsgs...)
 
-	go func() {
-		time.Sleep(2 * time.Second)
-
-		answer, err := s.LLM.Call(context.Background(), question)
-		if err != nil {
-			slog.Error("LLM chain call", slog.Any("error", err))
-			s.Alert.SetErr(errors.New("error calling LLM"))
-			return
-		}
-
-		s.ChatHistory.UpdateWaiting(fmt.Sprintf("%v", answer["text"]))
-		slog.Info("", "answer", answer)
-	}()
-
 	if err := components.ChatHistoryElements(newMsgs...).Render(r.Context(), w); err != nil {
 		slog.Error("chat history render", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
@@ -238,6 +224,17 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error converting index", http.StatusNotFound)
 		return
 	}
+
+	answer, err := s.LLM.Call(context.Background(), h[n-1].Bubble)
+	if err != nil {
+		slog.Error("LLM chain call", slog.Any("error", err))
+		http.Error(w, "error calling LLM", http.StatusInternalServerError)
+		s.Alert.SetErr(errors.New("error calling LLM"))
+		return
+	}
+
+	s.ChatHistory.UpdateWaiting(fmt.Sprintf("%v", answer["text"]))
+	slog.Info("", "answer", answer)
 
 	if err := components.ChatHistoryElements(h[n]).Render(r.Context(), w); err != nil {
 		slog.Error("chat history render", slog.Any("error", err))

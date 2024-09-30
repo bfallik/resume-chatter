@@ -37,7 +37,7 @@ templ ChatHistoryElements(elts ...model.ChatMessage) {
 				{ elt.Header }
 			</div>
 			if elt.IsWaiting {
-				<div class="answer" hx-trigger="load delay:1s" hx-get="/message" hx-target="closest div.chat" hx-swap="outerHTML" hx-vals={ hxValsJSON(elt.WaitingMessageIndex) }>
+				<div class="answer" hx-trigger="load" hx-get="/message" hx-target="closest div.chat" hx-swap="outerHTML" hx-vals={ hxValsJSON(elt.WaitingMessageIndex) }>
 					<span class="loading loading-dots loading-md"></span>
 				</div>
 			} else {
