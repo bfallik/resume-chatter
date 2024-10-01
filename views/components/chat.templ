@@ -15,7 +15,7 @@ func getChatStartEnd(isStart bool) string {
 
 templ ChatHistory(chat []model.ChatMessage) {
 	<div class="w-9/12" id="chat-history">
-		@ChatHistoryElements(chat...)
+		@ChatHistoryElements(0, chat...)
 	</div>
 }
 
@@ -30,14 +30,14 @@ func hxValsJSON(idx int) string {
 	return string(bytes)
 }
 
-templ ChatHistoryElements(elts ...model.ChatMessage) {
-	for _, elt := range elts {
+templ ChatHistoryElements(offset int, elts ...model.ChatMessage) {
+	for idx, elt := range elts {
 		<div class={ getChatStartEnd(elt.IsStart) }>
 			<div class="chat-header">
 				{ elt.Header }
 			</div>
 			if elt.IsWaiting {
-				<div class="answer" hx-trigger="load" hx-get="/message" hx-target="closest div.chat" hx-swap="outerHTML" hx-vals={ hxValsJSON(elt.WaitingMessageIndex) }>
+				<div class="answer" hx-trigger="load" hx-get="/message" hx-target="closest div.chat" hx-swap="outerHTML" hx-vals={ hxValsJSON(offset + idx) }>
 					<span class="loading loading-dots loading-md"></span>
 				</div>
 			} else {

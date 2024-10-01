@@ -192,16 +192,15 @@ func (s *Server) AskHandler(w http.ResponseWriter, r *http.Request) {
 			Bubble:    question,
 		},
 		{
-			IsStart:             false,
-			Header:              "Anakin",
-			IsWaiting:           true,
-			WaitingMessageIndex: ln + 1,
-			Bubble:              "",
+			IsStart:   false,
+			Header:    "Anakin",
+			IsWaiting: true,
+			Bubble:    "",
 		},
 	}
 	s.ChatHistory.Append(newMsgs...)
 
-	if err := components.ChatHistoryElements(newMsgs...).Render(r.Context(), w); err != nil {
+	if err := components.ChatHistoryElements(ln, newMsgs...).Render(r.Context(), w); err != nil {
 		slog.Error("chat history render", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 	}
@@ -218,7 +217,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	h := s.ChatHistory.GetChat()
 	ln := len(h)
-	if n >= ln {
+	if n == 0 || n >= ln {
 		slog.Error("out of bounds", slog.Int("index", n), slog.Int("len", ln))
 		http.Error(w, "error converting index", http.StatusNotFound)
 		return
@@ -235,7 +234,7 @@ func (s *Server) MessageHandler(w http.ResponseWriter, r *http.Request) {
 	s.ChatHistory.UpdateWaiting(fmt.Sprintf("%v", answer["text"]))
 	slog.Info("", "answer", answer)
 
-	if err := components.ChatHistoryElements(h[n]).Render(r.Context(), w); err != nil {
+	if err := components.ChatHistoryElements(n, h[n]).Render(r.Context(), w); err != nil {
 		slog.Error("chat history render", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 		return
