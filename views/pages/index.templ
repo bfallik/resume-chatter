@@ -17,7 +17,7 @@ templ Index(chat []model.ChatMessage, start time.Time, alert model.Alert) {
 				<form hx-post="/ask" hx-target="#chat-history" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful) this.reset()">
 					<div class="w-9/12">
 						@components.Textarea(model.Textarea{
-							Name: "content",
+							Name: "question",
 						})
 					</div>
 					<div class="w-9/12 flex flex-row-reverse">

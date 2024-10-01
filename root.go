@@ -174,22 +174,24 @@ func (s *Server) AskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content, ok := r.Form["content"]
+	question, ok := r.Form["question"]
 	if !ok {
-		slog.Error("missing form value", slog.Any("content", content))
-		http.Error(w, "missing form value: content", http.StatusInternalServerError)
+		slog.Error("missing form value", slog.Any("question", question))
+		http.Error(w, "missing form value: question", http.StatusInternalServerError)
 		return
 	}
 
-	question := content[0] // BF TODO: handle this
-	slog.Info("", "question", question)
+	if len(question) > 1 {
+		slog.Warn("ignoring additional 'question' params", slog.Any("question", question))
+	}
+	slog.Info("", "question", question[0])
 	ln := len(s.ChatHistory.GetChat())
 	newMsgs := []model.ChatMessage{
 		{
 			IsStart:   true,
 			Header:    "Obi-Wan Kenobi",
 			IsWaiting: false,
-			Bubble:    question,
+			Bubble:    question[0],
 		},
 		{
 			IsStart:   false,
