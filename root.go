@@ -161,8 +161,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 
 func (s *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 	idx := pages.Index(s.ChatHistory.GetChat(), s.Start, s.Alert.Model())
-	err := idx.Render(r.Context(), w)
-	if err != nil {
+	if err := idx.Render(r.Context(), w); err != nil {
 		slog.Error("rendering html template: ", slog.Any("error", err))
 		http.Error(w, "error rendering HTML template", http.StatusInternalServerError)
 	}
